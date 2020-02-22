@@ -27,9 +27,9 @@ def insert_data(collection, args_dict):
     db_name -> string i.e name of the db
     args_dict -> a dictionary of entries in db
     '''
-    collection_name.insert_one(args_dict)
-    print('Data inserted successfully')
+    obj = collection_name.insert_one(args_dict)
     closeConnection(client)
+    return obj
 
 def read_data(collection):
     client = getConnection()
