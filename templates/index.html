@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+
+    <title>Gallery</title>
+  </head>
+  <body>
+    
+    <div class="container">
+        <h2 class="text-center mt-5">Albums</h2>
+        <div class="row mt-5 mb-5">
+            {% for folder in folders %}
+                <div class="col-4 mt-3">
+                    <div class="card shadow">
+                        <img class="card-img-top" src="https://via.placeholder.com/150/000000/ffffff?Text=No_Thumbnail_Available" alt="Album">
+                        <div class="card-body">
+                        <p class="card-title">{{ folder }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script> -->
+    <script src="../static/js/bootstrap.min.js"></script>
+  </body>
+</html>
