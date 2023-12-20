@@ -13,19 +13,17 @@
   <body>
     
     <div class="container">
+      {% if folders %}
         <h2 class="text-center mt-5">Albums</h2>
-        <div class="row mt-5 mb-5">
+        <form action="http://localhost:5000/" method="POST">
+          <div class="list-group">
             {% for folder in folders %}
-                <div class="col-4 mt-3">
-                    <div class="card shadow">
-                        <img class="card-img-top" src="https://via.placeholder.com/150/000000/ffffff?Text=No_Thumbnail_Available" alt="Album">
-                        <div class="card-body">
-                        <p class="card-title">{{ folder }}</p>
-                        </div>
-                    </div>
-                </div>
+              <a href="/{{ folder }}" class="list-group-item list-group-item-action" type="submit" name="folder" value="Akki">{{ folder }}</a>
             {% endfor %}
-        </div>
+          </div>
+        </form>
+      {% endif %}
+        
 
     </div>
 
