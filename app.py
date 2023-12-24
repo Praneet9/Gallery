@@ -5,17 +5,24 @@ import numpy as np
 import pickle
 from glob import glob
 import cv2
-import shutil as su
 import json
 
 app = Flask(__name__)
-DATA_PATH = '/home/praneet/Projects/Face_Recognition/Dataset'
+HOME_DIR = '/home/praneet/Projects/Gallery/'
+ABSOLUTE_PATH = '/home/praneet/Projects/Gallery/static/data/'
 
 def get_files(path):
 
-    data_list = glob(os.path.join(DATA_PATH, path, '*'))
-    folders = [os.path.basename(i) for i in data_list if os.path.isdir(i)]
-    images = [i for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
+    dir_path = os.path.abspath(os.path.join(ABSOLUTE_PATH, path))
+    if not dir_path.startswith(ABSOLUTE_PATH):
+        dir_path = os.path.join(ABSOLUTE_PATH)
+
+    data_list = os.listdir(dir_path)
+    data_list = [os.path.join(dir_path, i) for i in data_list]
+    folders = [i.replace(ABSOLUTE_PATH, "") for i in data_list if os.path.isdir(i)]
+    images = [i.replace(HOME_DIR, "") for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
+    if folders:
+        folders = [os.path.join(os.path.dirname(folders[0]), '..')] + folders
     return folders, images
 
 def populate_db():
@@ -60,8 +67,6 @@ def tag_results():
 @app.route('/tag_faces', methods=['POST'])
 def tag_faces():
     
-    # print(request.form)
-    # path=(request.form.get('image_path'))
     path = 'static/data/B612_20170909_145018.jpg'
     dir_name = os.path.join('static', 'data', os.path.basename(path).split('.')[0])
     if not os.path.exists(dir_name):
@@ -86,24 +91,21 @@ def tag_faces():
 
     return render_template('tag_faces.html', path=path, faces=faces, labels=labels)
 
-@app.route('/<string:dir_name>')
-def list_images(dir_name):
-    folders, images = get_files(os.path.join(DATA_PATH, dir_name))
-    return render_template('image_grid.html', folders=folders, images=images)
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     # temp = pickle.dumps(np.array([123, 1234, 456]))
     # temp_dict = {
     #     'data': temp
     # }
     # print(album_name)
-    # if request.method == 'GET':
+    if request.method == 'GET':
+        path = ''
+    else:
+        path = request.form.get("folder", "")
     # else:
     #     path = ''
     # db.insert_data('faces', temp_dict)
-    folders, images = get_files()
-    
+    folders, images = get_files(path)
     return render_template('index.html', folders=folders, images=images)
 
 
