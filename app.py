@@ -6,6 +6,7 @@ import pickle
 from glob import glob
 import cv2
 import json
+from deepface import DeepFace
 
 app = Flask(__name__)
 HOME_DIR = '/home/praneet/Projects/Gallery/'
@@ -24,6 +25,44 @@ def get_files(path):
     if folders:
         folders = [os.path.join(os.path.dirname(folders[0]), '..')] + folders
     return folders, images
+
+def get_faces(img_path, dir_path):
+    #face detection and alignment
+    face_objs = DeepFace.extract_faces(img_path=img_path, 
+            target_size = (224, 224), 
+            detector_backend = "retinaface"
+    )
+    image = cv2.imread(img_path)
+    height, width, _ = image.shape
+    results = {}
+    for idx, face in enumerate(face_objs):
+
+        if face['confidence'] < 0.7:
+            continue
+
+        x1 = face['facial_area']['x'] - (face['facial_area']['w'] * 0.25)
+        x2 = face['facial_area']['x'] + face['facial_area']['w'] + (face['facial_area']['w'] * 0.2)
+        y1 = face['facial_area']['y'] - (face['facial_area']['h'] * 0.2)
+        y2 = face['facial_area']['y'] + face['facial_area']['h'] + (face['facial_area']['h'] * 0.1)
+
+        x1 = int(max(0, x1))
+        x2 = int(min(x2, width))
+        y1 = int(max(0, y1))
+        y2 = int(min(y2, height))
+
+        cropped_face = image[y1:y2, x1:x2]
+        face_path = os.path.join(dir_path, f'face_{idx}.jpg')
+        cv2.imwrite(face_path, cropped_face)
+        results[face_path] = {
+            'coordinates': {
+                'x1': x1,
+                'y1': y1,
+                'x2': x2,
+                'y2': y2
+            }
+        }
+
+    return results
 
 def populate_db():
     for pick in tqdm(glob('dl/pickles/*.pickle')):
@@ -67,22 +106,24 @@ def tag_results():
 @app.route('/tag_faces', methods=['POST'])
 def tag_faces():
     
-    path = 'static/data/B612_20170909_145018.jpg'
-    dir_name = os.path.join('static', 'data', os.path.basename(path).split('.')[0])
+    print(request.form["image_path"])
+    path = request.form["image_path"]
+    dir_name = os.path.join('static', 'temp_data', os.path.basename(path).split('.')[0])
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
 
+    detected_faces = get_faces(path, dir_name)
+
     labels = ['Praneet', 'Smriti', 'Sourav', 'Akshay']
-    faces = [path.replace('B612_20170909_145018', i) for i in labels]
+    faces = list(detected_faces.keys())
 
     info = {
         'picture_path': path,
-        'faces': {}
+        'faces': detected_faces.copy()
     }
     info_path = os.path.join(dir_name, 'info.json')
     for i in range(len(faces)):
         info['faces'][faces[i]] = {
-            'coordinates': [],
             'label': 'Unknown'
         }
 
