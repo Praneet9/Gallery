@@ -123,9 +123,7 @@ def tag_faces():
     }
     info_path = os.path.join(dir_name, 'info.json')
     for i in range(len(faces)):
-        info['faces'][faces[i]] = {
-            'label': 'Unknown'
-        }
+        info['faces'][faces[i]]['label'] = 'Unknown'
 
     with open(info_path, 'w') as f:
         json.dump(info, f)
