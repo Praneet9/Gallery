@@ -86,7 +86,7 @@ def tag_results():
     if request.method == 'POST':
         data = request.json
         image_path = data[0]['image_path']
-        dir_name = os.path.join('static', 'data', os.path.basename(image_path).split('.')[0])
+        dir_name = os.path.join('static', 'temp_data', os.path.basename(image_path).split('.')[0])
         if os.path.exists(dir_name):
             info_path = os.path.join(dir_name, 'info.json')
             with open(info_path, 'r') as f:
@@ -94,11 +94,15 @@ def tag_results():
         else:
             print("RAISE A 500 Error and redirect")
             return "Unsuccessful"
+        
         for face in data[1:]:
             info['faces'][face['face_path']]['label'] = face['face_label']
         
         with open(info_path, 'w') as f:
             json.dump(info, f)
+    else:
+        print("RAISE A 500 Error and redirect")
+        return "Unsuccessful"
 
     return "Successful!"
 
@@ -110,7 +114,7 @@ def tag_faces():
     path = request.form["image_path"]
     dir_name = os.path.join('static', 'temp_data', os.path.basename(path).split('.')[0])
     if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
+        os.makedirs(dir_name)
 
     detected_faces = get_faces(path, dir_name)
 
