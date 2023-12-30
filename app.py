@@ -122,20 +122,16 @@ def tag_results():
     if request.method == 'POST':
         data = request.json
         image_path = data[0]['image_path']
-        dir_name = os.path.join('static', 'temp_data', os.path.basename(image_path).split('.')[0])
-        if os.path.exists(dir_name):
-            info_path = os.path.join(dir_name, 'info.json')
-            with open(info_path, 'r') as f:
-                info = json.load(f)
-        else:
-            print("RAISE A 500 Error and redirect")
-            return "Unsuccessful"
         
-        for face in data[1:]:
-            info['faces'][face['face_path']]['label'] = face['face_label']
+        info = [(face['face_id'], face['face_label'], image_path, face['face_id']) for face in data[1:]]
+
+        conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
+        success = db.update_face_tags(conn, info)
+        conn.close()
+
+        if not success:
+            print("FAILED TO ADD TO DB! SHOW DIALOG")
         
-        with open(info_path, 'w') as f:
-            json.dump(info, f)
     else:
         print("RAISE A 500 Error and redirect")
         return "Unsuccessful"
@@ -146,29 +142,33 @@ def tag_results():
 @app.route('/tag_faces', methods=['POST'])
 def tag_faces():
     
-    print(request.form["image_path"])
     path = request.form["image_path"]
     dir_name = os.path.join('static', 'temp_data', os.path.basename(path).split('.')[0])
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-    detected_faces = get_faces(path, dir_name)
+    query = "SELECT * FROM gunners WHERE file_path = %s;"
+    records = (path, )
+    conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
+    detected_faces = db.read_query(conn, query, records)
+    conn.close()
+    
+    if detected_faces:
+        detected_faces = get_faces(detected_faces, path, dir_name)
+    else:
+        detected_faces = extract_faces(path, dir_name)
+        info = {
+            'picture_path': path,
+            'faces': detected_faces.copy()
+        }
+        conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
+        success = db.insert_face_tags(conn, info)
+        conn.close()
 
-    labels = ['Praneet', 'Smriti', 'Sourav', 'Akshay']
-    faces = list(detected_faces.keys())
+        if not success:
+            print("FAILED TO ADD TO DB! SHOW DIALOG")
 
-    info = {
-        'picture_path': path,
-        'faces': detected_faces.copy()
-    }
-    info_path = os.path.join(dir_name, 'info.json')
-    for i in range(len(faces)):
-        info['faces'][faces[i]]['label'] = 'Unknown'
-
-    with open(info_path, 'w') as f:
-        json.dump(info, f)
-
-    return render_template('tag_faces.html', path=path, faces=faces, labels=labels)
+    return render_template('tag_faces.html', path=path, detected_faces=detected_faces, labels=cfg.GUNNERS_NAMES)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
