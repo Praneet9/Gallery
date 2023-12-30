@@ -27,7 +27,7 @@ def get_files(path):
         folders = [os.path.join(os.path.dirname(folders[0]), '..')] + folders
     return folders, images
 
-def get_faces(img_path, dir_path):
+def extract_faces(img_path, dir_path):
     #face detection and alignment
     face_objs = DeepFace.extract_faces(img_path=img_path, 
             target_size = (224, 224), 
@@ -36,7 +36,7 @@ def get_faces(img_path, dir_path):
     image = cv2.imread(img_path)
     height, width, _ = image.shape
     results = {}
-    for idx, face in enumerate(face_objs):
+    for face_id, face in enumerate(face_objs):
 
         if face['confidence'] < cfg.FACE_CONF:
             continue
@@ -55,7 +55,7 @@ def get_faces(img_path, dir_path):
         y2 = int(min(y2, height))
 
         cropped_face = image[y1:y2, x1:x2]
-        face_path = os.path.join(dir_path, f'face_{idx}.jpg')
+        face_path = os.path.join(dir_path, f'face_{face_id}.jpg')
         cv2.imwrite(face_path, cropped_face)
         results[face_path] = {
             'coordinates': {
@@ -63,7 +63,39 @@ def get_faces(img_path, dir_path):
                 'y1': y1,
                 'x2': x2,
                 'y2': y2
-            }
+            },
+            'confidence': face['confidence'], 
+            'face_id': face_id,
+            'label': "Unknown"
+        }
+
+    return results
+
+def get_faces(face_objs, img_path, dir_path):
+
+    image = cv2.imread(img_path)
+    results = {}
+    for face in face_objs:
+        
+        x1, x2, y1, y2 = face[1:5]
+        face_id, name, confidence = face[6:]
+
+        if confidence < cfg.FACE_CONF:
+            continue
+
+        cropped_face = image[y1:y2, x1:x2]
+        face_path = os.path.join(dir_path, f'face_{face_id}.jpg')
+        cv2.imwrite(face_path, cropped_face)
+        results[face_path] = {
+            'coordinates': {
+                'x1': x1,
+                'y1': y1,
+                'x2': x2,
+                'y2': y2
+            },
+            'confidence': confidence, 
+            'face_id': face_id,
+            'label': name
         }
 
     return results
