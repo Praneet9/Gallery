@@ -100,21 +100,6 @@ def get_faces(face_objs, img_path, dir_path):
 
     return results
 
-def populate_db():
-    for pick in tqdm(glob('dl/pickles/*.pickle')):
-        for face in pickle(open(pick, 'rb').read()):
-            data = {}
-            data['folder_name'] = face['imagePath'].split('/')[-2]
-            data['image_name'] = face['imagePath'].split('/')[-1]
-            data['location'] = {
-                'y1': face['loc'][0],
-                'x2': face['loc'][1],
-                'y2': face['loc'][2],
-                'x1': face['loc'][3]
-            }
-            data['encoding'] = pickle.dumps(face['encoding'])
-            data['tagged'] = False
-            # db.insert_data('faces', temp_dict)
 
 @app.route('/tag_results', methods=['POST'])
 def tag_results():
@@ -172,18 +157,10 @@ def tag_faces():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # temp = pickle.dumps(np.array([123, 1234, 456]))
-    # temp_dict = {
-    #     'data': temp
-    # }
-    # print(album_name)
     if request.method == 'GET':
         path = ''
     else:
         path = request.form.get("folder", "")
-    # else:
-    #     path = ''
-    # db.insert_data('faces', temp_dict)
     folders, images = get_files(path)
     return render_template('index.html', folders=folders, images=images)
 
