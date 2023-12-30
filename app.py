@@ -7,6 +7,7 @@ from glob import glob
 import cv2
 import json
 from deepface import DeepFace
+import config as cfg
 
 app = Flask(__name__)
 HOME_DIR = '/home/praneet/Projects/Gallery/'
@@ -37,13 +38,16 @@ def get_faces(img_path, dir_path):
     results = {}
     for idx, face in enumerate(face_objs):
 
-        if face['confidence'] < 0.7:
+        if face['confidence'] < cfg.FACE_CONF:
             continue
 
-        x1 = face['facial_area']['x'] - (face['facial_area']['w'] * 0.25)
-        x2 = face['facial_area']['x'] + face['facial_area']['w'] + (face['facial_area']['w'] * 0.2)
-        y1 = face['facial_area']['y'] - (face['facial_area']['h'] * 0.2)
-        y2 = face['facial_area']['y'] + face['facial_area']['h'] + (face['facial_area']['h'] * 0.1)
+        w = face['facial_area']['w']
+        h = face['facial_area']['h']
+
+        x1 = face['facial_area']['x'] - (w * cfg.LEFT_PAD)
+        x2 = face['facial_area']['x'] + w + (w * cfg.RIGHT_PAD)
+        y1 = face['facial_area']['y'] - (h * cfg.TOP_PAD)
+        y2 = face['facial_area']['y'] + h + (h * cfg.BOTTOM_PAD)
 
         x1 = int(max(0, x1))
         x2 = int(min(x2, width))
