@@ -1,77 +1,65 @@
-from pymongo import MongoClient
+import mysql.connector as connector
+from mysql.connector import Error
 
-def testingdb():
-    print('Hello My DB')
 
-def getConnection():
-    client = MongoClient('localhost:27017')
-    return client
+def get_connection(host, port, password, database):
 
-def getDB(client):
-    db = client.gallery
-    return db
+    try:
+        connection = connector.connect(
+            host=host, port=port, 
+            passwd=password, database=database
+        )
+    except Error as err:
+        connection = None
+        print(f"MySQL connection failed due to: {err}")
 
-def getCollection(collection_name, db):
-    collection = db[collection_name]
-    return collection
+    return connection
 
-def closeConnection(client):
-    client.close()
 
-##Database Helper functions
-def insert_data(collection, args_dict):
-    client = getConnection()
-    db = getDB(client)
-    collection_name = getCollection(collection, db)
-    '''
-    db_name -> string i.e name of the db
-    args_dict -> a dictionary of entries in db
-    '''
-    obj = collection_name.insert_one(args_dict)
-    closeConnection(client)
-    return obj
+def read_query(connection, query, conditions=()):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, conditions)
+        result = cursor.fetchall()
+        return result
+    except Error as err:
+        print(f"Query failed due to: {err}")
+        return None
 
-def read_data(collection):
-    client = getConnection()
-    db = getDB(client)
-    collection_name = getCollection(collection, db)
-    '''
-    returns a cursor of objects
-    which can be iterated and printed
-    '''
-    cols = collection_name.find({})
-    closeConnection(client)
-    return cols
 
-#Update in data base
-def update_data(collection, idno, updation):
-    client = getConnection()
-    db = getDB(client)
-    collection_name = getCollection(collection, db)
-    '''
-    db_name -> string
-    idno -> id number of database entry in dict
-    eg:- {'id':'02'}
-    updation -> dict of elements to be updated
-    eg:-{
-        '$set':{
-            'name':'Kevin11',
-            'contact':'9664820165'
-        }
-    }
-    '''
-    collection_name.update_one(idno, updation)
-    closeConnection(client)
-    print('Database updated successfully')
+def insert_face_tags(connection, info):
 
-def delete_row(collection, idno):
-    client = getConnection()
-    db = getDB(client)
-    collection_name = getCollection(collection, db)
-    '''
-    Deletes the complete row
-    idno must be a dict {idno:'anything'}
-    '''
-    collection_name.delete_many(idno)
-    closeConnection(client)
-    print('Row deleted')
+    query = "INSERT INTO gunners (x1, x2, y1, y2, file_path, face_id, name, confidence) \
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+    
+    file_path = info.get('picture_path')
+    records = [
+        (face['coordinates']['x1'], face['coordinates']['x2'],
+         face['coordinates']['y1'], face['coordinates']['y2'],
+         file_path, face['face_id'], face['label'], round(face['confidence'], 3))
+         for face in info['faces'].values()
+    ]
+    
+    cursor = connection.cursor()
+    try:
+        cursor.executemany(query, records)
+        connection.commit()
+        return True
+    except Error as err:
+        print(f"Query failed due to: {err}")
+        return False
+
+
+def update_face_tags(connection, info):
+
+    query = "UPDATE gunners SET face_id = %s, name = %s \
+            WHERE file_path = %s AND face_id = %s;"
+    
+    cursor = connection.cursor()
+    try:
+        cursor.executemany(query, info)
+        connection.commit()
+        return True
+    except Error as err:
+        print(f"Query failed due to: {err}")
+        return False
