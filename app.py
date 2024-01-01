@@ -101,6 +101,23 @@ def get_faces(face_objs, img_path, dir_path):
     return results
 
 
+@app.route('/remove_face', methods=['POST'])
+def remove_face():
+    if request.method == 'POST':
+        data = request.json
+        image_path = data[0]['image_path']
+        face_id = int(data[0]['face_id'])
+
+        conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
+        success = db.remove_face(conn, image_path, face_id)
+        conn.close()
+
+        if success:
+            return "Delete Successful"
+        else:
+            return "Unsuccessful"
+
+
 @app.route('/tag_results', methods=['POST'])
 def tag_results():
 

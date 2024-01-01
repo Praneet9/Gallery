@@ -63,3 +63,16 @@ def update_face_tags(connection, info):
     except Error as err:
         print(f"Query failed due to: {err}")
         return False
+
+
+def remove_face(connection, img_path, face_id):
+
+    query = "DELETE FROM gunners WHERE file_path = %s AND face_id = %s;"
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, (img_path, face_id))
+        connection.commit()
+        return True
+    except Error as err:
+        print(f"Query failed due to: {err}")
+        return False
