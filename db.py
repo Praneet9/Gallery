@@ -76,3 +76,16 @@ def remove_face(connection, img_path, face_id):
     except Error as err:
         print(f"Query failed due to: {err}")
         return False
+
+
+def get_dir_info(connection, dir_path):
+    query = "SELECT DISTINCT(file_path), tagged FROM gunners WHERE file_path LIKE %s;"
+    conditions = (dir_path + '%', )
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, conditions)
+        result = cursor.fetchall()
+        return result
+    except Error as err:
+        print(f"Query failed due to: {err}")
+        return []

@@ -25,18 +25,25 @@
   <div class="container">
     {% if info["folders"] %}
     <h2 class="text-center mt-5">Albums</h2>
-    <div class="list-group">
+    <div class="list-group mb-5">
       {% for folder in info["folders"] %}
       <form action="/" method="POST">
-        <!-- <a onclick="this.parentNode.submit();" style="cursor: pointer;"
-          class="list-group-item list-group-item-action">{{ folder }}</a> -->
-          <div onclick="this.parentNode.submit();" style="cursor: pointer;"
-          class="d-flex justify-content-between list-group-item list-group-item-action">
-          <div class="text-left">{{ folder }}</div>
-          <div class="text-right">
-            <span class="badge bg-success text-light">{{ info["tagged_count"][folder]["tagged"] }} Tagged</span> 
-            <span class="badge bg-warning">{{ info["tagged_count"][folder]["untagged"] }} Untagged</span>
-          </div>
+        <div onclick="this.parentNode.submit();" style="cursor: pointer;"
+        class="d-flex justify-content-between list-group-item list-group-item-action">
+          {% set sum_count = info["tagged_count"][folder]["tagged"] + info["tagged_count"][folder]["untagged"] %}
+          {% if sum_count > 0 and info["tagged_count"][folder]["untagged"] > 0 %}
+            <div class="text-left text-danger">{{ folder }}</div>
+          {% elif sum_count > 0 and info["tagged_count"][folder]["tagged"] == 0 %}
+            <div class="text-left text-success">{{ folder }}</div>
+          {% else %}
+            <div class="text-left">{{ folder }}</div>
+          {% endif %}
+          {% if sum_count > 0 %}
+            <div class="text-right">
+              <span class="badge bg-success text-light">{{ info["tagged_count"][folder]["tagged"] }} Tagged</span> 
+              <span class="badge bg-danger text-light">{{ info["tagged_count"][folder]["untagged"] }} Untagged</span>
+            </div>
+          {% endif %}
         </div>
         <input type="hidden" name="folder" value="{{ folder }}">
       </form>

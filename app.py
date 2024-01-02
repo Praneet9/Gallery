@@ -10,8 +10,10 @@ from deepface import DeepFace
 import config as cfg
 
 app = Flask(__name__)
-HOME_DIR = '/home/praneet/Projects/Gallery/'
-ABSOLUTE_PATH = '/home/praneet/Projects/Gallery/static/data/'
+HOME_DIR = os.getcwd()
+STATIC_PATH = os.path.join('static', 'data')
+ABSOLUTE_PATH = os.path.join(HOME_DIR, STATIC_PATH)
+
 
 def get_files(path):
 
@@ -19,13 +21,48 @@ def get_files(path):
     if not dir_path.startswith(ABSOLUTE_PATH):
         dir_path = os.path.join(ABSOLUTE_PATH)
 
+    conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
+    dir_info = db.get_dir_info(conn, dir_path.replace(HOME_DIR, "").strip(r'\/'))
+    conn.close()
+
     data_list = os.listdir(dir_path)
     data_list = [os.path.join(dir_path, i) for i in data_list]
-    folders = [i.replace(ABSOLUTE_PATH, "") for i in data_list if os.path.isdir(i)]
-    images = [i.replace(HOME_DIR, "") for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
+    tagged_count = {}
+    
+    for image, tagged in dir_info:
+        image = os.path.dirname(image.replace(STATIC_PATH, "")).strip(r'\/')
+        if tagged_count.get(image, None) is None:
+            tagged_count[image] = [tagged]
+        else:
+            tagged_count[image].append(tagged)
+    folders = [i.replace(ABSOLUTE_PATH, "").strip(r'\/') for i in data_list if os.path.isdir(i)]
+    images = [i.replace(HOME_DIR, "").strip(r'\/') for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
     if folders:
-        folders = [os.path.join(os.path.dirname(folders[0]), '..')] + folders
-    return folders, images
+        path = os.path.join(os.path.dirname(folders[0]), '..')
+        folders = [path] + folders
+        tagged_count[path] = []
+    
+    for key in tagged_count.keys():
+        tagged_list = tagged_count[key]
+        tagged_count[key] = {
+            'tagged': sum(tagged_list),
+            'untagged': len(tagged_list) - sum(tagged_list)
+        }
+    
+    for folder in folders:
+        if tagged_count.get(folder, None) is None:
+            tagged_count[folder] = {
+                'tagged': 0,
+                'untagged': 0
+            }
+
+    info = {
+        'images': len(dir_info),
+        'folders': folders,
+        'images': images,
+        'tagged_count': tagged_count
+    }
+    return info
 
 def extract_faces(img_path, dir_path):
     #face detection and alignment
@@ -178,8 +215,8 @@ def index():
         path = ''
     else:
         path = request.form.get("folder", "")
-    folders, images = get_files(path)
-    return render_template('index.html', folders=folders, images=images)
+    info = get_files(path)
+    return render_template('index.html', info=info)
 
 
 
