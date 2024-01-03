@@ -52,7 +52,7 @@ def insert_face_tags(connection, info):
 
 def update_face_tags(connection, info):
 
-    query = "UPDATE gunners SET face_id = %s, name = %s \
+    query = "UPDATE gunners SET face_id = %s, name = %s, tagged = %s \
             WHERE file_path = %s AND face_id = %s;"
     
     cursor = connection.cursor()
