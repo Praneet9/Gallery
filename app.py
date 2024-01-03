@@ -162,7 +162,7 @@ def tag_results():
         data = request.json
         image_path = data[0]['image_path']
         
-        info = [(face['face_id'], face['face_label'], image_path, face['face_id'], True) for face in data[1:]]
+        info = [(face['face_id'], face['face_label'], True, image_path, face['face_id']) for face in data[1:]]
 
         conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
         success = db.update_face_tags(conn, info)
