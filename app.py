@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, make_response, jsonify
 import os
 import db
 import numpy as np
@@ -168,14 +168,12 @@ def tag_results():
         success = db.update_face_tags(conn, info)
         conn.close()
 
-        if not success:
-            print("FAILED TO ADD TO DB! SHOW DIALOG")
-        
-    else:
-        print("RAISE A 500 Error and redirect")
-        return "Unsuccessful"
+        if success:
+            response_data = jsonify("Updated")
+            return make_response(response_data, 200)
 
-    return "Successful!"
+    response_data = jsonify("Failed")
+    return make_response(response_data, 500)
 
 
 @app.route('/tag_faces', methods=['POST'])

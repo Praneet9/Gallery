@@ -22,6 +22,9 @@
   <body>
     
     <div class="container">
+		<div style="display: none;" id="update_failed_alert" class="alert alert-danger mt-3" role="alert">
+			Failed to add to DB!
+		</div>
 		<div class="mt-5 text-center">
 			<img src="{{ path }}" max_width="500" height="700">
 		</div>
@@ -77,8 +80,6 @@
 				let face_label = checkbox.value;
 				data.push({ face_path, face_label, face_id });
 			});
-			
-			console.log(data);
 
 			fetch('/tag_results', {
 			    method: 'POST',
@@ -88,10 +89,26 @@
 			    body: JSON.stringify(data)
 			})
 			.then(response => {
-			    // Handle the response
+				console.log(response.status);
+				// let json_response = response.json();
+				if(response.status == 200){
+					window.history.back();
+				} else {
+					var alert_elem = document.getElementById('update_failed_alert');
+					window.scrollTo(0, 0);
+					alert_elem.style.display = 'inherit';
+					setTimeout(() => {
+						alert_elem.style.display = 'none';
+					}, 3000);
+				}
 			})
 			.catch(error => {
-			    console.error('Error:', error);
+			    var alert_elem = document.getElementById('update_failed_alert');
+				window.scrollTo(0, 0);
+				alert_elem.style.display = 'inherit';
+				setTimeout(() => {
+					alert_elem.style.display = 'none';
+				}, 3000);
 			});
 
 		})
