@@ -28,8 +28,10 @@ def get_files(path):
     data_list = os.listdir(dir_path)
     data_list = [os.path.join(dir_path, i) for i in data_list]
     tagged_count = {}
+    tagged_info = {}
     
     for image, tagged in dir_info:
+        tagged_info[image.replace(HOME_DIR, "").strip(r'\/')] = tagged
         image = os.path.dirname(image.replace(STATIC_PATH, "")).strip(r'\/')
         if tagged_count.get(image, None) is None:
             tagged_count[image] = [tagged]
@@ -60,7 +62,8 @@ def get_files(path):
         'images': len(dir_info),
         'folders': folders,
         'images': images,
-        'tagged_count': tagged_count
+        'tagged_count': tagged_count,
+        'tagged_info': tagged_info
     }
     return info
 

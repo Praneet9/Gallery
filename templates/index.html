@@ -60,7 +60,11 @@
           <div class="card shadow">
             <img class="card-img-top" src="{{ image }}" alt="Album">
             <div class="card-body text-center">
-              <button type="submit" class="btn btn-primary">Tag Faces</button>
+              {% if info["tagged_info"].get(image, False) %}
+                <button type="submit" class="btn btn-success">Update Face Tags</button>
+              {% else %}
+                <button type="submit" class="btn btn-primary">Tag Faces</button>
+              {% endif %}
             </div>
           </div>
         </form>
