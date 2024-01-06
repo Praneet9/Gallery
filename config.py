@@ -1,5 +1,9 @@
 import os
 
+HOME_DIR = os.getcwd()
+STATIC_PATH = os.path.join('static', 'data')
+ABSOLUTE_PATH = os.path.join(HOME_DIR, STATIC_PATH)
+
 HOST = 'localhost'
 PORT = 3306
 USER = 'praneet'

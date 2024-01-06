@@ -10,19 +10,16 @@ from deepface import DeepFace
 import config as cfg
 
 app = Flask(__name__)
-HOME_DIR = os.getcwd()
-STATIC_PATH = os.path.join('static', 'data')
-ABSOLUTE_PATH = os.path.join(HOME_DIR, STATIC_PATH)
 
 
 def get_files(path):
 
-    dir_path = os.path.abspath(os.path.join(ABSOLUTE_PATH, path))
-    if not dir_path.startswith(ABSOLUTE_PATH):
-        dir_path = os.path.join(ABSOLUTE_PATH)
+    dir_path = os.path.abspath(os.path.join(cfg.ABSOLUTE_PATH, path))
+    if not dir_path.startswith(cfg.ABSOLUTE_PATH):
+        dir_path = os.path.join(cfg.ABSOLUTE_PATH)
 
     conn = db.get_connection(cfg.HOST, cfg.PORT, cfg.PASSWORD, cfg.DB)
-    dir_info = db.get_dir_info(conn, dir_path.replace(HOME_DIR, "").strip(r'\/'))
+    dir_info = db.get_dir_info(conn, dir_path.replace(cfg.HOME_DIR, "").strip(r'\/'))
     conn.close()
 
     data_list = os.listdir(dir_path)
@@ -31,14 +28,14 @@ def get_files(path):
     tagged_info = {}
     
     for image, tagged in dir_info:
-        tagged_info[image.replace(HOME_DIR, "").strip(r'\/')] = tagged
-        image = os.path.dirname(image.replace(STATIC_PATH, "")).strip(r'\/')
+        tagged_info[image.replace(cfg.HOME_DIR, "").strip(r'\/')] = tagged
+        image = os.path.dirname(image.replace(cfg.STATIC_PATH, "")).strip(r'\/')
         if tagged_count.get(image, None) is None:
             tagged_count[image] = [tagged]
         else:
             tagged_count[image].append(tagged)
-    folders = [i.replace(ABSOLUTE_PATH, "").strip(r'\/') for i in data_list if os.path.isdir(i)]
-    images = [i.replace(HOME_DIR, "").strip(r'\/') for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
+    folders = [i.replace(cfg.ABSOLUTE_PATH, "").strip(r'\/') for i in data_list if os.path.isdir(i)]
+    images = [i.replace(cfg.HOME_DIR, "").strip(r'\/') for i in data_list if i.endswith(('.png', '.jpg', '.jpeg'))]
     if folders:
         path = os.path.join(os.path.dirname(folders[0]), '..')
         folders = [path] + folders
